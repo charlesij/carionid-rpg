@@ -287,6 +287,7 @@ export class WestOffShore extends Scene {
             this.pathVisuals = this.add.group();
         }
 
+        // @ts-ignore
         this.currentPath.forEach((point, index) => {
             const visual = this.add.rectangle(
                 Math.floor(point.x) * this.tileSize,
