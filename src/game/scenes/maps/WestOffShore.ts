@@ -6,74 +6,70 @@ export class WestOffShore extends Scene {
     private map?: Phaser.Tilemaps.Tilemap;
     private readonly tileSize = 16;
     private readonly moveSpeed = 16;
-    private readonly OBSTACLES = {
-        'Ground Level 1': [
-            1,      // WATER
-            77,     // SHALLOW WATER
-        ],
-        'Ground Level 2': [
-            6,       // CLIFF
-            7,       // CLIFF
-            8,       // CLIFF
-            9,       // CLIFF
-            10,      // CLIFF
-            13,      // CLIFF
-            15,      // CLIFF
-            20,      // CLIFF
-            21,      // CLIFF
-            22,      // CLIFF
-            23,      // CLIFF
-            24,      // CLIFF
-            27,      // CLIFF
-            28,      // CLIFF
-            29,      // CLIFF
-            30,      // CLIFF
-            31,      // CLIFF
-            32,      // CLIFF
-            33,      // CLIFF
-            34,      // CLIFF
-            36,      // CLIFF
-            37,      // CLIFF
-            38,      // CLIFF
-            41,      // CLIFF
-            42,      // CLIFF
-            43,      // CLIFF
-            44,      // CLIFF
-            45,      // CLIFF
-            48,      // CLIFF
-            49,      // CLIFF
-            50,      // CLIFF
-            55,      // CLIFF
-            57,      // CLIFF
-            58,      // CLIFF
-            59,      // CLIFF
-            62,      // CLIFF
-            63,      // CLIFF
-            64,      // CLIFF
-            65,      // CLIFF
-            66,      // CLIFF
-        ]
+    private readonly TERRAIN = {
+        'Ground Level 2': {
+            elevated: [25, 26, 39, 40, 46, 47, 60, 61, 67, 68], // Tiles yang bisa dilewati
+            obstacles: [
+                6, 7, 8, 9, 10, 13, 15, 20, 21, 22, 23, 24, 27, 28, 29, 30,
+                31, 32, 33, 34, 36, 37, 38, 41, 42, 43, 44, 45, 48, 49, 50,
+                55, 57, 58, 59, 62, 63, 64, 65, 66
+            ] // Tebing dan obstacles lain
+        },
+        'Ground Level 1': {
+            obstacles: [-1, 1, 77] // Air dan air dangkal
+        }
     };
+    
+    private levelText?: Phaser.GameObjects.Text; // Text untuk menampilkan level ground
     private readonly MOVE_DELAY = 100; // Delay antara gerakan dalam milidetik
     private lastMoveTime = 0; // Waktu terakhir bergerak
 
-    // Fungsi untuk mengecek apakah posisi tersebut adalah obstacle
-    private isObstacles(x: number, y: number): boolean {
-        if (!this.map) return true; // Anggap true jika map belum load untuk safety
-        
-        // Dapatkan tile di posisi tersebut (dalam koordinat tile, bukan pixel)
+    // Fungsi untuk mendapatkan ground level di posisi tertentu
+    private getGroundLevel(x: number, y: number): number {
+        if (!this.map) return 1;
+
         const tileX = Math.floor(x / this.tileSize);
         const tileY = Math.floor(y / this.tileSize);
-        
-        // Cek setiap layer untuk obstacles
-        for (const [layerName, obstacleIds] of Object.entries(this.OBSTACLES)) {
-            const tile = this.map.getTileAt(tileX, tileY, true, layerName);
-            if (tile && obstacleIds.includes(tile.index)) {
-                return true; // Ada obstacle di salah satu layer
+
+        // Cek Ground Level 2
+        const tileLevel2 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 2');
+        if (tileLevel2 && this.TERRAIN['Ground Level 2'].elevated.includes(tileLevel2.index)) {
+            return 2; // Elevated terrain di level 2
+        }
+
+        return 1; // Default ke level 1
+    }
+
+    // Fungsi untuk mengecek apakah posisi tersebut bisa dilewati
+    private canMoveTo(x: number, y: number): boolean {
+        if (!this.map) return false;
+
+        const tileX = Math.floor(x / this.tileSize);
+        const tileY = Math.floor(y / this.tileSize);
+
+        // Cek tile di kedua level
+        const tileLevel1 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 1');
+        const tileLevel2 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 2');
+
+        // Cek obstacles di Ground Level 1
+        if (tileLevel1 && this.TERRAIN['Ground Level 1'].obstacles.includes(tileLevel1.index)) {
+            return false; // Ada air
+        }
+
+        // Cek obstacles di Ground Level 2
+        if (tileLevel2) {
+            if (this.TERRAIN['Ground Level 2'].obstacles.includes(tileLevel2.index)) {
+                return false; // Ada obstacle di level 2
+            }
+            
+            // Jika ada elevated terrain, pastikan ada base terrain yang valid di level 1
+            if (this.TERRAIN['Ground Level 2'].elevated.includes(tileLevel2.index)) {
+                return tileLevel1 !== null; // Bisa lewat jika ada base terrain
             }
         }
-        
-        return false; // Tidak ada obstacle di semua layer
+
+        // Bisa lewat jika ada base terrain dan tidak ada obstacle
+        return tileLevel1 !== null;
     }
 
     constructor() {
@@ -124,6 +120,14 @@ export class WestOffShore extends Scene {
         this.selector.setStrokeStyle(2, 0x00FF00); // Outline hijau
         this.selector.setOrigin(0); // Set origin ke pojok kiri atas
 
+        // Buat text untuk level
+        this.levelText = this.add.text(0, 0, 'L1', {
+            fontSize: '10px',
+            color: '#00FF00',
+            backgroundColor: '#000000'
+        });
+        this.levelText.setOrigin(0);
+
         // Set posisi awal
         this.selector.setPosition(
             Math.floor(1024 / 2 / this.tileSize) * this.tileSize,
@@ -163,15 +167,14 @@ export class WestOffShore extends Scene {
         // Cek pergerakan horizontal
         if (this.cursors.left.isDown && canMove) {
             const targetX = Math.max(0, this.selector.x - this.moveSpeed);
-            // Hanya pindah jika bukan obstacle
-            if (!this.isObstacles(targetX, this.selector.y)) {
+            if (this.canMoveTo(targetX, this.selector.y)) {
                 newX = targetX;
                 this.lastMoveTime = time;
             }
         }
         else if (this.cursors.right.isDown && canMove) {
             const targetX = Math.min(maxX, this.selector.x + this.moveSpeed);
-            if (!this.isObstacles(targetX, this.selector.y)) {
+            if (this.canMoveTo(targetX, this.selector.y)) {
                 newX = targetX;
                 this.lastMoveTime = time;
             }
@@ -180,14 +183,14 @@ export class WestOffShore extends Scene {
         // Cek pergerakan vertikal
         if (this.cursors.up.isDown && canMove) {
             const targetY = Math.max(0, this.selector.y - this.moveSpeed);
-            if (!this.isObstacles(this.selector.x, targetY)) {
+            if (this.canMoveTo(this.selector.x, targetY)) {
                 newY = targetY;
                 this.lastMoveTime = time;
             }
         }
         else if (this.cursors.down.isDown && canMove) {
             const targetY = Math.min(maxY, this.selector.y + this.moveSpeed);
-            if (!this.isObstacles(this.selector.x, targetY)) {
+            if (this.canMoveTo(this.selector.x, targetY)) {
                 newY = targetY;
                 this.lastMoveTime = time;
             }
@@ -195,19 +198,25 @@ export class WestOffShore extends Scene {
 
         // Update posisi selector jika posisi baru valid
         if (newX !== this.selector.x || newY !== this.selector.y) {
-            // Debug: tampilkan info tile
+            // Update posisi selector
+            this.selector.setPosition(newX, newY);
+            
+            // Update level text
+            const currentLevel = this.getGroundLevel(newX, newY);
+            if (this.levelText) {
+                this.levelText.setText(`L${currentLevel}`);
+                this.levelText.setPosition(newX, newY - 12).setDepth(1 + currentLevel); // Posisikan di atas selector
+                this.selector.setDepth(1 + currentLevel);
+            }
+
+            // Debug info
             const tileX = Math.floor(newX / this.tileSize);
             const tileY = Math.floor(newY / this.tileSize);
             const tileGround1 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 1');
             const tileGround2 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 2');
             
-            if (tileGround2?.index) {
-                console.log(`Moving to tile [${tileX},${tileY}] on Ground Level 2 with index: ${tileGround2.index}`);
-            } else if (tileGround1?.index) {
-                console.log(`Moving to tile [${tileX},${tileY}] on Ground Level 1 with index: ${tileGround1.index}`);
-            }
-            
-            this.selector.setPosition(newX, newY);
+            console.log(`Position [${tileX},${tileY}] Level ${currentLevel}`);
+            console.log(`Ground1: ${tileGround1?.index}, Ground2: ${tileGround2?.index}`);
         }
     }
 }
