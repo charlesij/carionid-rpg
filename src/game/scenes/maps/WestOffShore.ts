@@ -8,15 +8,16 @@ export class WestOffShore extends Scene {
     private readonly moveSpeed = 16;
     private readonly TERRAIN = {
         'Ground Level 2': {
-            elevated: [25, 26, 39, 40, 46, 47, 60, 61, 67, 68], // Tiles yang bisa dilewati
+            elevated: [14, 25, 26, 35, 39, 40, 46, 47, 60, 61, 67, 68, 80, 81, 82, 83, 84, 85], // Tiles yang bisa dilewati
+            cave: [16, 17], // Cave: terlihat di level 2 tapi termasuk ground 1
             obstacles: [
                 6, 7, 8, 9, 10, 13, 15, 20, 21, 22, 23, 24, 27, 28, 29, 30,
                 31, 32, 33, 34, 36, 37, 38, 41, 42, 43, 44, 45, 48, 49, 50,
-                55, 57, 58, 59, 62, 63, 64, 65, 66
+                55, 57, 58, 59, 62, 63, 64, 65, 66, 132, 133, 134, 135, 136, 137, , 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156
             ] // Tebing dan obstacles lain
         },
         'Ground Level 1': {
-            obstacles: [-1, 1, 77] // Air dan air dangkal
+            obstacles: [-1, 0, 1, 77] // Air dan air dangkal
         }
     };
     
@@ -40,6 +41,15 @@ export class WestOffShore extends Scene {
         return 1; // Default ke level 1
     }
 
+    // Fungsi untuk mengecek apakah posisi tersebut adalah cave
+    private isCave(x: number, y: number): boolean {
+        if (!this.map) return false;
+        const tileX = Math.floor(x / this.tileSize);
+        const tileY = Math.floor(y / this.tileSize);
+        const tileLevel2 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 2');
+        return tileLevel2 !== null && this.TERRAIN['Ground Level 2'].cave.includes(tileLevel2.index);
+    }
+
     // Fungsi untuk mengecek apakah posisi tersebut bisa dilewati
     private canMoveTo(x: number, y: number): boolean {
         if (!this.map) return false;
@@ -51,25 +61,46 @@ export class WestOffShore extends Scene {
         const tileLevel1 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 1');
         const tileLevel2 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 2');
 
-        // Cek obstacles di Ground Level 1
-        if (tileLevel1 && this.TERRAIN['Ground Level 1'].obstacles.includes(tileLevel1.index)) {
-            return false; // Ada air
+        // Cek current position untuk menentukan dari mana kita bergerak
+        const currentLevel = this.getGroundLevel(this.selector!.x, this.selector!.y);
+        const isCurrentlyCave = this.isCave(this.selector!.x, this.selector!.y);
+        const isTargetCave = this.isCave(x, y);
+
+        // Cek obstacles di level 2 jika ada
+        if (tileLevel2 && this.TERRAIN['Ground Level 2'].obstacles.includes(tileLevel2.index)) {
+            return false; // Tidak bisa lewat jika ada obstacle di level 2
         }
 
-        // Cek obstacles di Ground Level 2
-        if (tileLevel2) {
-            if (this.TERRAIN['Ground Level 2'].obstacles.includes(tileLevel2.index)) {
-                return false; // Ada obstacle di level 2
+        // Jika kita di Level 2 (elevated)
+        if (currentLevel === 2) {
+            // Tidak bisa masuk ke cave dari level 2
+            if (isTargetCave) {
+                return false;
             }
-            
-            // Jika ada elevated terrain, pastikan ada base terrain yang valid di level 1
-            if (this.TERRAIN['Ground Level 2'].elevated.includes(tileLevel2.index)) {
-                return tileLevel1 !== null; // Bisa lewat jika ada base terrain
+            // Bisa bergerak ke elevated terrain lain
+            if (tileLevel2 && this.TERRAIN['Ground Level 2'].elevated.includes(tileLevel2.index)) {
+                return true;
             }
+            // Atau turun ke Level 1 jika tidak ada obstacle
+            return tileLevel1 !== null && !this.TERRAIN['Ground Level 1'].obstacles.includes(tileLevel1.index);
         }
 
-        // Bisa lewat jika ada base terrain dan tidak ada obstacle
-        return tileLevel1 !== null;
+        // Jika kita di cave
+        if (isCurrentlyCave) {
+            // Hanya bisa ke Level 1 atau cave lain
+            return (tileLevel1 !== null && !this.TERRAIN['Ground Level 1'].obstacles.includes(tileLevel1.index)) || isTargetCave;
+        }
+
+        // Cek kondisi di Ground Level 1
+        if (!tileLevel1 || this.TERRAIN['Ground Level 1'].obstacles.includes(tileLevel1.index)) {
+            // Bisa lewat jika ada elevated terrain atau cave
+            return (tileLevel2 !== null && 
+                   (this.TERRAIN['Ground Level 2'].elevated.includes(tileLevel2.index) || 
+                    this.TERRAIN['Ground Level 2'].cave.includes(tileLevel2.index)));
+        }
+
+        // Di Level 1, bisa ke mana saja kecuali obstacles
+        return true;
     }
 
     constructor() {
@@ -88,14 +119,22 @@ export class WestOffShore extends Scene {
         const shoreTileset = this.map.addTilesetImage('Shore', 'shore');
         const texturedGrassTileset = this.map.addTilesetImage('TexturedGrass', 'textured-grass');
         const winterGrassTileset = this.map.addTilesetImage('Winter', 'winter-grass');
+        const cactusTileset = this.map.addTilesetImage('Cactus', 'cactus');
+        const coconutTreesTileset = this.map.addTilesetImage('CoconutTrees', 'coconut-trees');
+        const deadTreesTileset = this.map.addTilesetImage('DeadTrees', 'dead-trees');
+        const pineTreesTileset = this.map.addTilesetImage('PineTrees', 'pine-trees');
+        const rocksTileset = this.map.addTilesetImage('Rocks', 'rocks');
+        const treesTileset = this.map.addTilesetImage('Trees', 'trees');
+        const tumbleweedTileset = this.map.addTilesetImage('Tumbleweed', 'tumbleweed');
+        const wheatfieldTileset = this.map.addTilesetImage('Wheatfield', 'wheatfield');
 
-        if (!grassTileset || !cliffTileset || !cliffWaterTileset || !deadGrassTileset || !shoreTileset || !texturedGrassTileset || !winterGrassTileset || !this.map) {
+        if (!grassTileset || !cliffTileset || !cliffWaterTileset || !deadGrassTileset || !shoreTileset || !texturedGrassTileset || !winterGrassTileset || !cactusTileset || !coconutTreesTileset || !deadTreesTileset || !pineTreesTileset || !rocksTileset || !treesTileset || !tumbleweedTileset || !wheatfieldTileset || !this.map) {
             console.error('Failed to load tilesets or map');
             return;
         }
         
         // Gabungkan tileset untuk digunakan di layer
-        const allTilesets = [grassTileset, cliffTileset, cliffWaterTileset, deadGrassTileset, shoreTileset, texturedGrassTileset, winterGrassTileset];
+        const allTilesets = [grassTileset, cliffTileset, cliffWaterTileset, deadGrassTileset, shoreTileset, texturedGrassTileset, winterGrassTileset, cactusTileset, coconutTreesTileset, deadTreesTileset, pineTreesTileset, rocksTileset, treesTileset, tumbleweedTileset, wheatfieldTileset];
 
         // Debug info
         // console.log('Available layers:', this.map.layers.map(l => l.name));
@@ -201,22 +240,33 @@ export class WestOffShore extends Scene {
             // Update posisi selector
             this.selector.setPosition(newX, newY);
             
-            // Update level text
+            // Update level text dan cek cave
             const currentLevel = this.getGroundLevel(newX, newY);
+            const isEnteringCave = this.isCave(newX, newY);
+            const wasInCave = this.isCave(this.selector.x, this.selector.y);
+
             if (this.levelText) {
-                this.levelText.setText(`L${currentLevel}`);
-                this.levelText.setPosition(newX, newY - 12).setDepth(1 + currentLevel); // Posisikan di atas selector
+                // Update text dan depth
+                this.levelText.setText(isEnteringCave ? 'CAVE' : `L${currentLevel}`);
+                this.levelText.setPosition(newX, newY - 12).setDepth(1 + currentLevel);
                 this.selector.setDepth(1 + currentLevel);
+
+                // Log saat masuk atau keluar cave
+                if (isEnteringCave && !wasInCave) {
+                    console.log('Entering cave...');
+                } else if (!isEnteringCave && wasInCave) {
+                    console.log('Exiting cave...');
+                }
             }
 
             // Debug info
-            const tileX = Math.floor(newX / this.tileSize);
-            const tileY = Math.floor(newY / this.tileSize);
-            const tileGround1 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 1');
-            const tileGround2 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 2');
+            // const tileX = Math.floor(newX / this.tileSize);
+            // const tileY = Math.floor(newY / this.tileSize);
+            // const tileGround1 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 1');
+            // const tileGround2 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 2');
             
-            console.log(`Position [${tileX},${tileY}] Level ${currentLevel}`);
-            console.log(`Ground1: ${tileGround1?.index}, Ground2: ${tileGround2?.index}`);
+            // console.log(`Position [${tileX},${tileY}] Level ${currentLevel}`);
+            // console.log(`Ground1: ${tileGround1?.index}, Ground2: ${tileGround2?.index}`);
         }
     }
 }

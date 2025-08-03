@@ -40,6 +40,15 @@ export class Preloader extends Scene
         this.load.image('shore', 'tileset/Ground/Shore.png');
         this.load.image('textured-grass', 'tileset/Ground/TexturedGrass.png');
         this.load.image('winter-grass', 'tileset/Ground/Winter.png');
+
+        this.load.image('cactus', 'tileset/Nature/Cactus.png');
+        this.load.image('coconut-trees', 'tileset/Nature/CoconutTrees.png');
+        this.load.image('dead-trees', 'tileset/Nature/DeadTrees.png');
+        this.load.image('pine-trees', 'tileset/Nature/PineTrees.png');
+        this.load.image('rocks', 'tileset/Nature/Rocks.png');
+        this.load.image('trees', 'tileset/Nature/Trees.png');
+        this.load.image('tumbleweed', 'tileset/Nature/Tumbleweed.png');
+        this.load.image('wheatfield', 'tileset/Nature/Wheatfield.png'); 
         this.tiledAssets();
     }
 
