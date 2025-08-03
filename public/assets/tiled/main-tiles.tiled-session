@@ -135,19 +135,20 @@
     ],
     "project": "main-tiles.tiled-project",
     "recentFiles": [
+        "Ground/Shore.tsj",
+        "Ground/DeadGrass.tsj",
         "Ground/Cliff.tsj",
         "Map/WestOffshore.tmj",
         "Ground/Grass.tsj",
         "Ground/Winter.tsj",
         "Ground/TexturedGrass.tsj",
-        "Ground/Shore.tsj",
-        "Ground/DeadGrass.tsj",
         "Ground/Cliff-Water.tsj",
         "Map/WestOffshore.tmx",
         "Ground/Cliff.tsx",
         "Map/West Offshore.tmx",
         "Ground/Winter.tsx"
     ],
+    "tileset.embedInMap": true,
     "tileset.lastUsedFormat": "json",
     "tileset.tileSize": {
         "height": 16,

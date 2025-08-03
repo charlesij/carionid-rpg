@@ -8,20 +8,23 @@ import { WestOffShore } from './scenes/maps/WestOffShore';
 
 //  Find out more information about the Game Config at:
 //  https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
+const width = window.innerWidth;
+const height = window.innerHeight;
 const config: Phaser.Types.Core.GameConfig = {
     type: AUTO,
-    width: 1024,
-    height: 768,
+    width: width,
+    height: height,
     parent: 'game-container',
     backgroundColor: '#028af8',
     pixelArt: true,
+    banner: false,
     scene: [
         Boot,
         Preloader,
         MainMenu,
         MainGame,
         GameOver,
-        WestOffShore
+        WestOffShore,
     ]
 };
 

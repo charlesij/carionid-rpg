@@ -33,9 +33,13 @@ export class Preloader extends Scene
         this.load.setPath('assets');
 
         this.load.image('logo', 'logo.png');
-        this.load.image('grass', 'tileset/Ground/Grass.png');
+        this.load.image('cliff-water', 'tileset/Ground/CliffWater.png');
         this.load.image('cliff', 'tileset/Ground/Cliff.png');
-
+        this.load.image('dead-grass', 'tileset/Ground/DeadGrass.png');
+        this.load.image('grass', 'tileset/Ground/Grass.png');
+        this.load.image('shore', 'tileset/Ground/Shore.png');
+        this.load.image('textured-grass', 'tileset/Ground/TexturedGrass.png');
+        this.load.image('winter-grass', 'tileset/Ground/Winter.png');
         this.tiledAssets();
     }
 
