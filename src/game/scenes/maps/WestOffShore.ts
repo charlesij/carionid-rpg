@@ -6,12 +6,58 @@ export class WestOffShore extends Scene {
     private map?: Phaser.Tilemaps.Tilemap;
     private readonly tileSize = 16;
     private readonly moveSpeed = 16;
-    private readonly OBSTACLES = [
-        1,      // WATER
-        77,     // SHALLOW WATER
-    ];
+    private readonly OBSTACLES = {
+        'Ground Level 1': [
+            1,      // WATER
+            77,     // SHALLOW WATER
+        ],
+        'Ground Level 2': [
+            6,       // CLIFF
+            7,       // CLIFF
+            8,       // CLIFF
+            9,       // CLIFF
+            10,      // CLIFF
+            13,      // CLIFF
+            15,      // CLIFF
+            20,      // CLIFF
+            21,      // CLIFF
+            22,      // CLIFF
+            23,      // CLIFF
+            24,      // CLIFF
+            27,      // CLIFF
+            28,      // CLIFF
+            29,      // CLIFF
+            30,      // CLIFF
+            31,      // CLIFF
+            32,      // CLIFF
+            33,      // CLIFF
+            34,      // CLIFF
+            36,      // CLIFF
+            37,      // CLIFF
+            38,      // CLIFF
+            41,      // CLIFF
+            42,      // CLIFF
+            43,      // CLIFF
+            44,      // CLIFF
+            45,      // CLIFF
+            48,      // CLIFF
+            49,      // CLIFF
+            50,      // CLIFF
+            55,      // CLIFF
+            57,      // CLIFF
+            58,      // CLIFF
+            59,      // CLIFF
+            62,      // CLIFF
+            63,      // CLIFF
+            64,      // CLIFF
+            65,      // CLIFF
+            66,      // CLIFF
+        ]
+    };
+    private readonly MOVE_DELAY = 100; // Delay antara gerakan dalam milidetik
+    private lastMoveTime = 0; // Waktu terakhir bergerak
 
-    // Fungsi untuk mengecek apakah posisi tersebut adalah laut
+    // Fungsi untuk mengecek apakah posisi tersebut adalah obstacle
     private isObstacles(x: number, y: number): boolean {
         if (!this.map) return true; // Anggap true jika map belum load untuk safety
         
@@ -19,10 +65,15 @@ export class WestOffShore extends Scene {
         const tileX = Math.floor(x / this.tileSize);
         const tileY = Math.floor(y / this.tileSize);
         
-        // Cek tile di Ground Level 1 (layer laut)
-        const tile = this.map.getTileAt(tileX, tileY, true, 'Ground Level 1');
-        // Jika tidak ada tile atau index tidak sesuai, anggap bukan air
-        return this.OBSTACLES.includes(tile?.index || 0) || false;
+        // Cek setiap layer untuk obstacles
+        for (const [layerName, obstacleIds] of Object.entries(this.OBSTACLES)) {
+            const tile = this.map.getTileAt(tileX, tileY, true, layerName);
+            if (tile && obstacleIds.includes(tile.index)) {
+                return true; // Ada obstacle di salah satu layer
+            }
+        }
+        
+        return false; // Tidak ada obstacle di semua layer
     }
 
     constructor() {
@@ -73,10 +124,10 @@ export class WestOffShore extends Scene {
         this.selector.setStrokeStyle(2, 0x00FF00); // Outline hijau
         this.selector.setOrigin(0); // Set origin ke pojok kiri atas
 
-        // Set posisi awal di tengah layar
+        // Set posisi awal
         this.selector.setPosition(
-            Math.floor(this.cameras.main.width / 2 / this.tileSize) * this.tileSize,
-            Math.floor(this.cameras.main.height / 2 / this.tileSize) * this.tileSize
+            Math.floor(1024 / 2 / this.tileSize) * this.tileSize,
+            Math.floor(768 / 2 / this.tileSize) * this.tileSize
         );
 
         // Setup input keyboard
@@ -95,7 +146,7 @@ export class WestOffShore extends Scene {
         this.cameras.main.startFollow(this.selector, true);
     }
 
-    update() {
+    update(time: number) {
         if (!this.map || !this.selector || !this.cursors) return;
 
         // Hitung batas map
@@ -106,32 +157,39 @@ export class WestOffShore extends Scene {
         let newX = this.selector.x;
         let newY = this.selector.y;
 
+        // Cek apakah sudah waktunya untuk gerakan baru
+        const canMove = time - this.lastMoveTime >= this.MOVE_DELAY;
+
         // Cek pergerakan horizontal
-        if (Phaser.Input.Keyboard.JustDown(this.cursors.left)) {
+        if (this.cursors.left.isDown && canMove) {
             const targetX = Math.max(0, this.selector.x - this.moveSpeed);
-            // Hanya pindah jika bukan air
+            // Hanya pindah jika bukan obstacle
             if (!this.isObstacles(targetX, this.selector.y)) {
                 newX = targetX;
+                this.lastMoveTime = time;
             }
         }
-        else if (Phaser.Input.Keyboard.JustDown(this.cursors.right)) {
+        else if (this.cursors.right.isDown && canMove) {
             const targetX = Math.min(maxX, this.selector.x + this.moveSpeed);
             if (!this.isObstacles(targetX, this.selector.y)) {
                 newX = targetX;
+                this.lastMoveTime = time;
             }
         }
 
         // Cek pergerakan vertikal
-        if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
+        if (this.cursors.up.isDown && canMove) {
             const targetY = Math.max(0, this.selector.y - this.moveSpeed);
             if (!this.isObstacles(this.selector.x, targetY)) {
                 newY = targetY;
+                this.lastMoveTime = time;
             }
         }
-        else if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) {
+        else if (this.cursors.down.isDown && canMove) {
             const targetY = Math.min(maxY, this.selector.y + this.moveSpeed);
             if (!this.isObstacles(this.selector.x, targetY)) {
                 newY = targetY;
+                this.lastMoveTime = time;
             }
         }
 
@@ -140,8 +198,14 @@ export class WestOffShore extends Scene {
             // Debug: tampilkan info tile
             const tileX = Math.floor(newX / this.tileSize);
             const tileY = Math.floor(newY / this.tileSize);
-            const tile = this.map.getTileAt(tileX, tileY, true, 'Ground Level 1');
-            console.log(`Moving to tile [${tileX},${tileY}] with index: ${tile?.index}`);
+            const tileGround1 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 1');
+            const tileGround2 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 2');
+            
+            if (tileGround2?.index) {
+                console.log(`Moving to tile [${tileX},${tileY}] on Ground Level 2 with index: ${tileGround2.index}`);
+            } else if (tileGround1?.index) {
+                console.log(`Moving to tile [${tileX},${tileY}] on Ground Level 1 with index: ${tileGround1.index}`);
+            }
             
             this.selector.setPosition(newX, newY);
         }

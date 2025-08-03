@@ -6,8 +6,6 @@ import { AUTO, Game } from 'phaser';
 import { Preloader } from './scenes/Preloader';
 import { WestOffShore } from './scenes/maps/WestOffShore';
 
-//  Find out more information about the Game Config at:
-//  https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
 const width = window.innerWidth;
 const height = window.innerHeight;
 const config: Phaser.Types.Core.GameConfig = {
@@ -18,6 +16,14 @@ const config: Phaser.Types.Core.GameConfig = {
     backgroundColor: '#028af8',
     pixelArt: true,
     banner: false,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+    },
+    fps: {
+        target: 60,
+        min: 20,
+    },
     scene: [
         Boot,
         Preloader,
@@ -29,9 +35,7 @@ const config: Phaser.Types.Core.GameConfig = {
 };
 
 const StartGame = (parent: string) => {
-
     return new Game({ ...config, parent });
-
 }
 
 export default StartGame;
