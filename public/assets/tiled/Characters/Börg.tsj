@@ -1,0 +1,14 @@
+{ "columns":6,
+ "image":"..\/..\/tileset\/Characters\/Champions\/B\u00f6rg.png",
+ "imageheight":128,
+ "imagewidth":96,
+ "margin":0,
+ "name":"B\u00f6rg",
+ "spacing":0,
+ "tilecount":48,
+ "tiledversion":"1.11.2",
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset",
+ "version":"1.10"
+}

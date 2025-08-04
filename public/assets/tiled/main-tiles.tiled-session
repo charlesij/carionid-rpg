@@ -3,10 +3,10 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "Map/West Offshore.tmx",
+    "activeFile": "Map/WestOffshore.tmj",
     "expandedProjectPaths": [
-        "Ground",
         ".",
+        "Ground",
         "Map"
     ],
     "fileStates": {
@@ -89,16 +89,58 @@
             }
         },
         "Map/WestOffshore.tmj": {
-            "scale": 1,
-            "selectedLayer": 0,
+            "scale": 5.5,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 270.5,
-                "y": 273
+                "x": 979.1818181818182,
+                "y": 500.1818181818182
             }
+        },
+        "Map/WestOffshore.tmj#Cactus": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#Cliff": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#CliffWater": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#CoconutTrees": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#DeadGrass": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#DeadTrees": {
+            "scaleInDock": 1
         },
         "Map/WestOffshore.tmj#Grass": {
             "scaleInDock": 1,
             "scaleInEditor": 1
+        },
+        "Map/WestOffshore.tmj#PineTrees": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#Rocks": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#Shore": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#TexturedGrass": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#Trees": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#Tumbleweed": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#Wheatfield": {
+            "scaleInDock": 1
+        },
+        "Map/WestOffshore.tmj#Winter": {
+            "scaleInDock": 1
         },
         "Map/WestOffshore.tmx": {
             "scale": 0.522314453125,
@@ -115,7 +157,7 @@
     },
     "last.exportedFilePath": "C:/Users/L21/Documents/MT21/Aplikasi/Applications/phaserjs/learning-tiles/public/assets/tiled/Map",
     "last.externalTilesetPath": "C:/Users/L21/Documents/MT21/Aplikasi/Applications/phaserjs/learning-tiles/public/assets/tiled/Ground",
-    "last.imagePath": "C:/Users/L21/Documents/MT21/Aplikasi/Applications/phaserjs/learning-tiles/public/assets/tileset/Nature",
+    "last.imagePath": "C:/Users/L21/Documents/MT21/Aplikasi/Applications/phaserjs/learning-tiles/public/assets/tileset/Characters/Champions",
     "lastUsedTilesetExportFilter": "JSON tileset files (*.tsj *.json)",
     "map.height": 64,
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
@@ -124,21 +166,14 @@
     "map.tileWidth": 16,
     "map.width": 64,
     "openFiles": [
-        "Map/West Offshore.tmx",
-        "Ground/Grass.tsx",
-        "Ground/Cliff.tsx",
-        "Ground/Cliff-Water.tsx",
-        "Ground/Winter.tsx",
-        "Ground/TexturedGrass.tsx",
-        "Ground/Shore.tsx",
-        "Ground/DeadGrass.tsx"
+        "Map/WestOffshore.tmj"
     ],
     "project": "main-tiles.tiled-project",
     "recentFiles": [
+        "Map/WestOffshore.tmj",
         "Ground/Shore.tsj",
         "Ground/DeadGrass.tsj",
         "Ground/Cliff.tsj",
-        "Map/WestOffshore.tmj",
         "Ground/Grass.tsj",
         "Ground/Winter.tsj",
         "Ground/TexturedGrass.tsj",
@@ -148,7 +183,7 @@
         "Map/West Offshore.tmx",
         "Ground/Winter.tsx"
     ],
-    "tileset.embedInMap": true,
+    "tileset.embedInMap": false,
     "tileset.lastUsedFormat": "json",
     "tileset.tileSize": {
         "height": 16,

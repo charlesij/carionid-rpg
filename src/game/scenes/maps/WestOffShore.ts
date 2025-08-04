@@ -29,7 +29,9 @@ export class WestOffShore extends Scene {
             obstacles: [
                 6, 7, 8, 9, 10, 13, 15, 20, 21, 22, 23, 24, 27, 28, 29, 30,
                 31, 32, 33, 34, 36, 37, 38, 41, 42, 43, 44, 45, 48, 49, 50,
-                55, 57, 58, 59, 62, 63, 64, 65, 66, 132, 133, 134, 135, 136, 137, , 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156
+                55, 57, 58, 59, 62, 63, 64, 65, 66, 132, 133, 134, 135, 136, 
+                137, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 
+                153, 154, 155, 156
             ] // Tebing dan obstacles lain
         },
         'Ground Level 1': {
@@ -131,6 +133,7 @@ export class WestOffShore extends Scene {
             this.touchState.dragStartY = pointer.y;
             this.touchState.lastX = pointer.x;
             this.touchState.lastY = pointer.y;
+            this.levelText?.setAlpha(0);
         });
 
         this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
@@ -404,7 +407,7 @@ export class WestOffShore extends Scene {
             color: '#00FF00',
             backgroundColor: '#000000'
         });
-        this.levelText.setOrigin(0);
+        this.levelText.setOrigin(0).setAlpha(0);
 
         // Set posisi awal
         this.selector.setPosition(
@@ -493,7 +496,7 @@ export class WestOffShore extends Scene {
             if (this.levelText) {
                 // Update text dan depth
                 this.levelText.setText(isEnteringCave ? 'CAVE' : `L${currentLevel}`);
-                this.levelText.setPosition(newX, newY - 12).setDepth(1 + currentLevel);
+                this.levelText.setPosition(newX, newY - 12).setDepth(1 + currentLevel).setAlpha(1);
                 this.selector.setDepth(1 + currentLevel);
 
                 // Log saat masuk atau keluar cave
@@ -503,6 +506,7 @@ export class WestOffShore extends Scene {
                     console.log('Exiting cave...');
                 }
             }
+            
 
             // Debug info
             // const tileX = Math.floor(newX / this.tileSize);
