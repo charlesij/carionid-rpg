@@ -2,7 +2,7 @@ import { Scene } from "phaser";
 
 export class WestOffShore extends Scene {
     private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
-    private selector?: Phaser.GameObjects.Rectangle;
+    private selector?: Phaser.GameObjects.Sprite;
     private map?: Phaser.Tilemaps.Tilemap;
     private readonly tileSize = 16;
     private readonly moveSpeed = 16;
@@ -42,6 +42,7 @@ export class WestOffShore extends Scene {
     private levelText?: Phaser.GameObjects.Text; // Text untuk menampilkan level ground
     private readonly MOVE_DELAY = 100; // Delay antara gerakan dalam milidetik
     private lastMoveTime = 0; // Waktu terakhir bergerak
+    private lastDirection: 'up' | 'down' | 'left' | 'right' = 'down'; // Arah terakhir karakter
 
     // Fungsi untuk mendapatkan ground level di posisi tertentu
     private getGroundLevel(x: number, y: number): number {
@@ -120,7 +121,7 @@ export class WestOffShore extends Scene {
         // Di Level 1, bisa ke mana saja kecuali obstacles
         return true;
     }
-
+    
     constructor() {
         super('WestOffShore');
     }
@@ -396,10 +397,78 @@ export class WestOffShore extends Scene {
         layer1.setDepth(0);
         layer2.setDepth(1);
 
-        // Buat kotak selector
-        this.selector = this.add.rectangle(0, 0, this.tileSize, this.tileSize, 0xFFFFFF, 0);
-        this.selector.setStrokeStyle(2, 0x3695b8); // Outline hijau
+        // Buat sprite karakter
+        this.selector = this.add.sprite(0, 0, 'borg', 0);
         this.selector.setOrigin(0); // Set origin ke pojok kiri atas
+
+        // Konfigurasi animasi
+        const idleFrameRate = 4;
+        const walkFrameRate = 8;
+
+        // Buat animasi idle
+        this.anims.create({
+            key: 'borg-down-idle',
+            frames: this.anims.generateFrameNumbers('borg', { start: 0, end: 1 }),
+            frameRate: idleFrameRate,
+            repeat: -1,
+            yoyo: true
+        });
+
+        this.anims.create({
+            key: 'borg-left-idle',
+            frames: this.anims.generateFrameNumbers('borg', { start: 12, end: 13 }),
+            frameRate: idleFrameRate,
+            repeat: -1,
+            yoyo: true
+        });
+
+        this.anims.create({
+            key: 'borg-right-idle',
+            frames: this.anims.generateFrameNumbers('borg', { start: 18, end: 19 }),
+            frameRate: idleFrameRate,
+            repeat: -1,
+            yoyo: true
+        });
+
+        this.anims.create({
+            key: 'borg-up-idle',
+            frames: this.anims.generateFrameNumbers('borg', { start: 6, end: 7 }),
+            frameRate: idleFrameRate,
+            repeat: -1,
+            yoyo: true
+        });
+
+        // Buat animasi berjalan
+        this.anims.create({
+            key: 'borg-down',
+            frames: this.anims.generateFrameNumbers('borg', { start: 0, end: 4 }),
+            frameRate: walkFrameRate,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'borg-left',
+            frames: this.anims.generateFrameNumbers('borg', { start: 12, end: 16 }),
+            frameRate: walkFrameRate,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'borg-right',
+            frames: this.anims.generateFrameNumbers('borg', { start: 18, end: 22 }),
+            frameRate: walkFrameRate,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'borg-up',
+            frames: this.anims.generateFrameNumbers('borg', { start: 6, end: 10 }),
+            frameRate: walkFrameRate,
+            repeat: -1
+        });
+
+        // Mainkan animasi idle
+        this.selector.play('borg-down-idle');
 
         // Buat text untuk level
         this.levelText = this.add.text(0, 0, 'L1', {
@@ -434,88 +503,122 @@ export class WestOffShore extends Scene {
         this.initTouchControls();
     }
 
-    update(time: number) {
-        if (!this.map || !this.selector || !this.cursors) return;
-
-        // Skip keyboard input if moving on path
-        if (this.isMovingOnPath) return;
+    private updateMovement(time: number) {
+        if (!this.map || !this.selector || !this.cursors) return false;
 
         // Hitung batas map
         const maxX = this.map.width * this.tileSize - this.tileSize;
         const maxY = this.map.height * this.tileSize - this.tileSize;
 
-        // Gerakkan selector berdasarkan input dengan batasan
-        let newX = this.selector.x;
-        let newY = this.selector.y;
-
         // Cek apakah sudah waktunya untuk gerakan baru
         const canMove = time - this.lastMoveTime >= this.MOVE_DELAY;
+        if (!canMove) return false;
+
+        let newX = this.selector.x;
+        let newY = this.selector.y;
+        let moved = false;
 
         // Cek pergerakan horizontal
-        if (this.cursors.left.isDown && canMove) {
+        if (this.cursors.left.isDown) {
             const targetX = Math.max(0, this.selector.x - this.moveSpeed);
             if (this.canMoveTo(targetX, this.selector.y)) {
                 newX = targetX;
-                this.lastMoveTime = time;
+                this.lastDirection = 'left';
+                moved = true;
             }
         }
-        else if (this.cursors.right.isDown && canMove) {
+        else if (this.cursors.right.isDown) {
             const targetX = Math.min(maxX, this.selector.x + this.moveSpeed);
             if (this.canMoveTo(targetX, this.selector.y)) {
                 newX = targetX;
-                this.lastMoveTime = time;
+                this.lastDirection = 'right';
+                moved = true;
             }
         }
 
         // Cek pergerakan vertikal
-        if (this.cursors.up.isDown && canMove) {
+        if (this.cursors.up.isDown) {
             const targetY = Math.max(0, this.selector.y - this.moveSpeed);
             if (this.canMoveTo(this.selector.x, targetY)) {
                 newY = targetY;
-                this.lastMoveTime = time;
+                this.lastDirection = 'up';
+                moved = true;
             }
         }
-        else if (this.cursors.down.isDown && canMove) {
+        else if (this.cursors.down.isDown) {
             const targetY = Math.min(maxY, this.selector.y + this.moveSpeed);
             if (this.canMoveTo(this.selector.x, targetY)) {
                 newY = targetY;
-                this.lastMoveTime = time;
+                this.lastDirection = 'down';
+                moved = true;
             }
         }
 
-        // Update posisi selector jika posisi baru valid
-        if (newX !== this.selector.x || newY !== this.selector.y) {
-            // Update posisi selector
+        // Update posisi jika bergerak
+        if (moved) {
             this.selector.setPosition(newX, newY);
-            
-            // Update level text dan cek cave
-            const currentLevel = this.getGroundLevel(newX, newY);
-            const isEnteringCave = this.isCave(newX, newY);
+            this.lastMoveTime = time;
+        }
+
+        return moved;
+    }
+
+    private updateAnimation() {
+        if (!this.selector || !this.cursors) return;
+
+        const isMoving = this.cursors.left.isDown || 
+                        this.cursors.right.isDown || 
+                        this.cursors.up.isDown || 
+                        this.cursors.down.isDown;
+
+        const currentAnim = this.selector.anims.getName();
+        
+        // Jika sedang bergerak
+        if (isMoving) {
+            const walkAnim = `borg-${this.lastDirection}`;
+            // Mainkan animasi jalan hanya jika belum dimainkan
+            if (currentAnim !== walkAnim) {
+                this.selector.play(walkAnim);
+            }
+        } 
+        // Jika berhenti
+        else {
+            const idleAnim = `borg-${this.lastDirection}-idle`;
+            // Mainkan animasi idle hanya jika sedang tidak idle
+            if (!currentAnim.includes('idle')) {
+                this.selector.play(idleAnim);
+            }
+        }
+    }
+
+    update(time: number) {
+        if (!this.map || !this.selector || !this.cursors || this.isMovingOnPath) return;
+
+        // Update movement dan animation secara terpisah
+        const moved = this.updateMovement(time);
+        
+        // Update level text jika bergerak
+        if (moved && this.levelText) {
+            const currentLevel = this.getGroundLevel(this.selector.x, this.selector.y);
+            const isEnteringCave = this.isCave(this.selector.x, this.selector.y);
             const wasInCave = this.isCave(this.selector.x, this.selector.y);
 
-            if (this.levelText) {
-                // Update text dan depth
-                this.levelText.setText(isEnteringCave ? 'CAVE' : `L${currentLevel}`);
-                this.levelText.setPosition(newX, newY - 12).setDepth(1 + currentLevel).setAlpha(1);
-                this.selector.setDepth(1 + currentLevel);
+            // Update text dan depth
+            this.levelText.setText(isEnteringCave ? 'CAVE' : `L${currentLevel}`);
+            this.levelText.setPosition(this.selector.x, this.selector.y - 12)
+                .setDepth(1 + currentLevel)
+                .setAlpha(1);
+            this.selector.setDepth(1 + currentLevel);
 
-                // Log saat masuk atau keluar cave
-                if (isEnteringCave && !wasInCave) {
-                    console.log('Entering cave...');
-                } else if (!isEnteringCave && wasInCave) {
-                    console.log('Exiting cave...');
-                }
+            // Log saat masuk atau keluar cave
+            if (isEnteringCave && !wasInCave) {
+                console.log('Entering cave...');
+            } else if (!isEnteringCave && wasInCave) {
+                console.log('Exiting cave...');
             }
-            
-
-            // Debug info
-            // const tileX = Math.floor(newX / this.tileSize);
-            // const tileY = Math.floor(newY / this.tileSize);
-            // const tileGround1 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 1');
-            // const tileGround2 = this.map.getTileAt(tileX, tileY, true, 'Ground Level 2');
-            
-            // console.log(`Position [${tileX},${tileY}] Level ${currentLevel}`);
-            // console.log(`Ground1: ${tileGround1?.index}, Ground2: ${tileGround2?.index}`);
         }
+
+        // Update animasi
+        this.updateAnimation();
     }
 }

@@ -48,7 +48,14 @@ export class Preloader extends Scene
         this.load.image('rocks', 'tileset/Nature/Rocks.png');
         this.load.image('trees', 'tileset/Nature/Trees.png');
         this.load.image('tumbleweed', 'tileset/Nature/Tumbleweed.png');
-        this.load.image('wheatfield', 'tileset/Nature/Wheatfield.png'); 
+        this.load.image('wheatfield', 'tileset/Nature/Wheatfield.png');
+        
+        // Load character sprite
+        this.load.spritesheet('borg', 'tileset/Characters/Champions/Börg.png', { 
+            frameWidth: 16,
+            frameHeight: 16
+        });
+        
         this.tiledAssets();
     }
 
